@@ -8,9 +8,9 @@
 
 // ------------pcl------------------
 #include <pcl/io/pcd_io.h>
-
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
+
 using namespace boost::placeholders;
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -71,7 +71,6 @@ void MainWindow::InitData()
         qDebug() << "sqlite database open filed";
         return;
     }
-
     // 获取所有用户表（排除系统表）
     QStringList tables = db.tables(QSql::Tables);
 
@@ -92,13 +91,10 @@ void MainWindow::InitUIdesign()
     ui->label->setPixmap(QPixmap(":/image/shiyi.png"));
     ui->label->setScaledContents(true);
 
-
     // 在构造函数中
     ui->data_listWidget->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->data_listWidget, &QListWidget::customContextMenuRequested,
             this, &MainWindow::onListWidgetContextMenu);
-
-
 
     //绑定信号，将调试信息输出值ui
     connect(LogMessage::Instance(), &LogMessage::sigDebugHtmlData, ui->LogMessage_textBrowser, &QTextBrowser::append);
@@ -166,7 +162,6 @@ void MainWindow::open_file_slot()
         return;
     }
     qDebug() << "加载成功" << filename;
-
     // ----------------添加到db中----------------
     QFileInfo fileInfo(filename);
     QString tableName = fileInfo.baseName(); // 获取文件名（不含路径和扩展名）
@@ -175,7 +170,6 @@ void MainWindow::open_file_slot()
     if (tableName.isEmpty()) {
         tableName = "pointcloud"; // 默认名
     }
-
     // 确保表存在
     QSqlQuery createQuery(db);
     QString createTableSQL = QString(R"(
@@ -195,9 +189,7 @@ void MainWindow::open_file_slot()
     // 插入点数据
     QSqlQuery insertQuery(db);
     insertQuery.prepare(QString("INSERT INTO \"%1\" (x, y, z) VALUES (?, ?, ?)").arg(tableName));
-
     db.transaction(); // 使用事务提高大量插入性能
-
     for (const auto& point : cloud->points) {
         insertQuery.addBindValue(point.x);
         insertQuery.addBindValue(point.y);
@@ -213,7 +205,6 @@ void MainWindow::open_file_slot()
     } else {
         qDebug() << "success" << cloud->size() << "nums point save to:" << tableName;
     }
-
     // 显示到PCLVisualizer
     viewer->addPointCloud(cloud, "cloud");
     viewer->resetCamera();
@@ -242,9 +233,7 @@ void MainWindow::onceRunningSlot(bool checked_)
             QMessageBox::information(this,"information", "Please input cloud");
             return;
         }
-
         // 连接信号槽    多线程传递数据用信号槽机制，另外，传递的格式不常见的要先声明
-        //初始化
         qRegisterMetaType<pcl::PointCloud<pcl::PointXYZ>::Ptr>("pcl::PointCloud<pcl::PointXYZ>::Ptr");
         connect(this, &MainWindow::startSampling, algo, &Algo::doSampling);
         connect(algo, &Algo::samplingFinished, this, [this](pcl::PointCloud<pcl::PointXYZ>::Ptr result){
@@ -334,8 +323,6 @@ void MainWindow::InitSqlite()
     {
         qDebug() << tr("Faild connect sqlite database:") << db.lastError().text();
     }
-
-
 }
 
 // DataList 切换选择
@@ -352,7 +339,6 @@ void MainWindow::data_list_change_slot(QListWidgetItem *item)
         qDebug() << query.lastError().text();
         return;
     }
-
     // 遍历查询结果
     int count = 0;
     while (query.next()) {
@@ -364,7 +350,6 @@ void MainWindow::data_list_change_slot(QListWidgetItem *item)
         point.x = static_cast<float>(x);
         point.y = static_cast<float>(y);
         point.z = static_cast<float>(z);
-
         cloud->push_back(point);
         ++count;
     }
@@ -373,15 +358,12 @@ void MainWindow::data_list_change_slot(QListWidgetItem *item)
     cloud->width = cloud->size();
     cloud->height = 1;
     cloud->is_dense = true;  // 假设没有无效点
-
     // 先清理之前的显示内容
     viewer->removeAllPointClouds();
     viewer->removeAllShapes();
     viewer->addPointCloud(cloud, "cloud");
     viewer->resetCamera();
     ui->qvtkWidget->GetRenderWindow()->Render();
-
-
 }
 
 
@@ -401,14 +383,12 @@ void MainWindow::onListWidgetContextMenu(const QPoint &pos)
             qDebug() << "sqlite database open failed";
             return;
         }
-
         // 二次确认
         if (QMessageBox::question(this, "confirm",
                                   QString("confirm delete file '%1' ?").arg(tableName),
                                   QMessageBox::Yes | QMessageBox::No) == QMessageBox::No) {
             return;
         }
-
         QSqlQuery query(db);
         QString sql = QString("DROP TABLE IF EXISTS \"%1\"").arg(tableName);
         if (query.exec(sql)) {
@@ -418,7 +398,6 @@ void MainWindow::onListWidgetContextMenu(const QPoint &pos)
             qDebug() << "filed delete list" << query.lastError().text();
         }
     }
-
     InitData(); // 重新刷新列表
 }
 
@@ -433,17 +412,14 @@ void MainWindow::onHomeAction_slot()
 
 int MainWindow::starPointIdx = -1;  // 或者你想要的初始值
 
-
 void MainWindow::pointPickingCallback(const pcl::visualization::PointPickingEvent& event, void* args)
 {
     if (event.getPointIndex() == -1)
         return;
-
     MainWindow* self = static_cast<MainWindow*>(args);
     pcl::PointXYZ current_point;
     event.getPoint(current_point.x, current_point.y, current_point.z);
     int idx = event.getPointIndex();
-
 
     self->clicked_points_3d->clear();
     self->clicked_points_3d->points.push_back(current_point);
