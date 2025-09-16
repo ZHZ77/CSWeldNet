@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/">
+        <file>image/blue_once.png</file>
+        <file>image/cswnet.ico</file>
+        <file>image/analysis.png</file>
+        <file>image/help.png</file>
+        <file>image/home.png</file>
+        <file>image/open_file.png</file>
+        <file>image/shiyi.png</file>
+        <file>image/sample.png</file>
+    </qresource>
+</RCC>
